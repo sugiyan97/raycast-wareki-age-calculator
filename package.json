@@ -1,0 +1,36 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "raycast-wareki-age-calculator",
+  "title": "Wareki Calculator",
+  "description": "Wareki and AD conversion calculator",
+  "icon": "wareki-icon.png",
+  "author": "sugiyan97",
+  "categories": [
+    "Applications"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Wareki Calculator - 和暦計算",
+      "description": "wareki and AD conversion calculator",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^2.0.5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix --relaxed",
+    "lint": "ray lint --relaxed"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "^22.19.17",
+    "eslint": "^10.9.0",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3"
+  }
+}
