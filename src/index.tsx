@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
 import React from "react";
-import { Wareki, WarekiKey } from "./wareki";
+import { Wareki, WarekiKey, calculateAge, formatAgeDisplay, formatWarekiDate, parseAgeInput } from "./wareki";
 
 const calc = (targetYear: number) => {
   return Object.keys(Wareki).reduce(
@@ -46,12 +46,19 @@ const convertYear = (sourceYear: string) => {
 export default function Command() {
   const [searchYear, setSearchYear] = React.useState("");
 
+  const ageInput = parseAgeInput(searchYear);
+  const ageDisplay = ageInput ? formatAgeDisplay(calculateAge(ageInput)) : null;
+  const warekiDateLine = ageInput?.kind === "full" ? formatWarekiDate(ageInput) : null;
+
   const year = convertYear(searchYear);
-  const items = isNaN(year) ? [] : calc(year);
+  // 生年月日入力（ageInput.kind === "full"）のときは、既存の convertYear/calc による
+  // 年のみの元号一覧は出さない（生年月日を西暦年として誤読するケースがあるため。例:
+  // "19830401" は西暦19830401年と誤読される）。既存の変換ロジック自体は変更しない。
+  const items = isNaN(year) || ageInput?.kind === "full" ? [] : calc(year);
 
   return (
     <List
-      isLoading={items.length === 0}
+      isLoading={items.length === 0 && ageDisplay === null}
       searchBarPlaceholder="Enter year of 西暦 or 和暦"
       enableFiltering={false}
       onSearchTextChange={setSearchYear}
@@ -61,19 +68,35 @@ export default function Command() {
           <List.Item
             key={item}
             title={item}
-            actions={<Actions item={item} />}
+            actions={<Actions copyValue={item} />}
             icon={{ source: Icon.Circle, tintColor: Color.Green }}
           />
         );
       })}
+      {warekiDateLine && (
+        <List.Item
+          key="wareki-date"
+          title={warekiDateLine}
+          actions={<Actions copyValue={warekiDateLine} />}
+          icon={{ source: Icon.Circle, tintColor: Color.Green }}
+        />
+      )}
+      {ageDisplay && (
+        <List.Item
+          key="age"
+          title={ageDisplay.title}
+          actions={<Actions copyValue={ageDisplay.copyValue} />}
+          icon={{ source: Icon.Calendar, tintColor: Color.Blue }}
+        />
+      )}
     </List>
   );
 }
 
-function Actions({ item }: { item: string }) {
+function Actions({ copyValue }: { copyValue: string }) {
   return (
     <ActionPanel title="Wareki - 和暦西暦変換">
-      <Action.CopyToClipboard content={item} title="Copy" />
+      <Action.CopyToClipboard content={copyValue} title="Copy" />
     </ActionPanel>
   );
 }

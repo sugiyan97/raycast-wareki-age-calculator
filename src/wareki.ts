@@ -209,3 +209,43 @@ export function parseAgeInput(source: string): AgeInput | null {
     parseWarekiYear(input)
   );
 }
+
+// ---- 年齢表示整形（issue #7） ----
+// AgeResult を List UI に表示するタイトル文字列と、Copy to Clipboard でコピーする
+// 数値文字列に変換する。JSX には依存しない純粋関数。
+
+export type AgeDisplay = { title: string; copyValue: string };
+
+export function formatAgeDisplay(result: AgeResult): AgeDisplay {
+  switch (result.kind) {
+    case "confirmed":
+      return { title: `満${result.age}歳`, copyValue: String(result.age) };
+    case "range":
+      // 生年 === 基準年の場合 preBirthdayAge が -1 になり意味を持たないため、
+      // 幅表示ではなく確定表示にする（生年月日入力ではなく年のみ入力で、かつ
+      // 誕生日前の年齢という概念が成立しないケース）。
+      if (result.preBirthdayAge < 0) {
+        return { title: `満${result.postBirthdayAge}歳`, copyValue: String(result.postBirthdayAge) };
+      }
+      return {
+        title: `満${result.postBirthdayAge}歳（誕生日前なら${result.preBirthdayAge}歳）`,
+        copyValue: String(result.postBirthdayAge),
+      };
+    case "future":
+      // 生年月日が基準日と同じ年で、まだ誕生日前のケースは yearsUntilBirth が0になる。
+      // 「あと0年後」は日本語として意味を成さないため、年数を出さない表現にする。
+      if (result.yearsUntilBirth <= 0) {
+        return { title: "今年誕生予定（まだ誕生日前）", copyValue: "0" };
+      }
+      return { title: `あと${result.yearsUntilBirth}年後に誕生`, copyValue: String(result.yearsUntilBirth) };
+  }
+}
+
+// ---- 和暦の生年月日表示（issue #7フォローアップ） ----
+// 生年月日入力時、既存の calc()/convertYear（年のみ用）とは別に、日付を保持したまま
+// 和暦表示を作る。既存の変換ロジックには手を入れず、追加関数として実装する。
+export function formatWarekiDate(input: { year: number; month: number; day: number }): string | null {
+  const era = Object.values(Wareki).find(({ start }) => input.year >= start);
+  if (!era) return null;
+  return `${era.label}${input.year - era.start + 1}年${input.month}月${input.day}日`;
+}
