@@ -25,6 +25,7 @@
     "dev": "ray develop",
     "fix-lint": "ray lint --fix --relaxed",
     "lint": "ray lint --relaxed",
+    "lint:ci": "eslint src test && prettier --check src test package.json",
     "test": "node --test"
   },
   "devDependencies": {
